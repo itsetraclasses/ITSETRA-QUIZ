@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finance Quiz</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111b33;
+      --text:#e7eefc;
+      --muted:#a7b4d6;
+      --accent:#6aa8ff;
+      --good:#38d39f;
+      --bad:#ff5c7a;
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --radius: 18px;
+      --ring: 0 0 0 3px rgba(106,168,255,.25);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(900px 400px at 20% 0%, rgba(106,168,255,.18), transparent 55%),
+                  radial-gradient(700px 300px at 80% 10%, rgba(56,211,159,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .wrap{width:min(860px, 100%);}
+    .top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .brand h1{
+      font-size:18px; margin:0; letter-spacing:.2px;
+    }
+    .brand p{
+      margin:0; color:var(--muted); font-size:13px;
+    }
+    .timer{
+      background: rgba(17,27,51,.65);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding:10px 12px;
+      min-width:170px;
+      text-align:right;
+    }
+    .timer .label{color:var(--muted); font-size:12px; margin-bottom:2px;}
+    .timer .time{
+      font-variant-numeric: tabular-nums;
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:.3px;
+    }
+    .card{
+      background: rgba(17,27,51,.78);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    /* Animated screen container */
+    .screen{
+      padding:18px;
+      min-height: 360px;
+      animation: popIn .28s ease-out;
+    }
+    @keyframes popIn{
+      from{opacity:.0; transform: translateY(10px) scale(.99);}
+      to{opacity:1; transform: translateY(0) scale(1);}
+    }
+
+    .question-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      align-items:flex-start;
+    }
+    .qtag{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius: 14px;
+      background: rgba(106,168,255,.12);
+      border: 1px solid rgba(106,168,255,.25);
+      color: var(--accent);
+      font-weight:700;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .qtitle{
+      margin:0;
+      font-size:18px;
+      line-height:1.35;
+      letter-spacing:.1px;
+    }
+    .hint{
+      margin-top:6px;
+      color: var(--muted);
+      font-size:13px;
+    }
+
+    .choices{
+      display:grid;
+      gap:10px;
+      margin-top:16px;
+    }
+    .choice{
+      width:100%;
+      text-align:left;
+      padding:12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      cursor:pointer;
+      transition: transform .08s ease, border-color .12s ease, background .12s ease, box-shadow .12s ease;
+      outline:none;
+      position:relative;
+    }
+    .choice:hover{
+      transform: translateY(-1px);
+      border-color: rgba(106,168,255,.35);
+      background: rgba(106,168,255,.08);
+    }
+    .choice:focus-visible{ box-shadow: var(--ring); }
+    .choice[aria-disabled="true"]{
+      cursor:not-allowed;
+      opacity:.9;
+    }
+    .choice .letter{
+      display:inline-flex;
+      width:28px;
+      height:28px;
+      align-items:center;
+      justify-content:center;
+      border-radius: 10px;
+      margin-right:10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      font-weight:900;
+      color: var(--muted);
+    }
+    .choice.correct{
+      border-color: rgba(56,211,159,.55);
+      background: rgba(56,211,159,.12);
+    }
+    .choice.wrong{
+      border-color: rgba(255,92,122,.6);
+      background: rgba(255,92,122,.12);
+    }
+
+    .actions{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:16px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:0;
+      cursor:pointer;
+      color: #0b1220;
+      background: var(--accent);
+      padding:12px 14px;
+      border-radius: 14px;
+      font-weight:900;
+      letter-spacing:.2px;
+      transition: transform .08s ease, filter .15s ease;
+    }
+    button:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+    button:active{ transform: translateY(0); }
+    .btn-secondary{
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .status{
+      color: var(--muted);
+      font-size: 13px;
+      font-weight:600;
+    }
+
+    .end{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      justify-content:center;
+      align-items:flex-start;
+    }
+    .score{
+      font-size: 42px;
+      font-weight: 1000;
+      margin:0;
+    }
+    .sub{
+      color: var(--muted);
+      margin:0;
+      font-size: 14px;
+      line-height:1.5;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      margin-top:6px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: var(--good);
+      box-shadow: 0 0 0 6px rgba(56,211,159,.12);
+    }
+    .dot.bad{
+      background: var(--bad);
+      box-shadow: 0 0 0 6px rgba(255,92,122,.12);
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 520px){
+      .timer{min-width: 130px;}
+      .screen{padding:14px;}
+      .qtitle{font-size:16px;}
+      .score{font-size: 34px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <h1>Finance Quiz</h1>
+        <p>Answer fast. Score updates at the end.</p>
+      </div>
+      <div class="timer" aria-live="polite">
+        <div class="label">Time left</div>
+        <div class="time" id="timerText">02:00</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="screen" id="screen">
+        <!-- Content injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { questions } from './questions.js';
+
+    const screen = document.getElementById('screen');
+    const timerText = document.getElementById('timerText');
+
+    const TOTAL_TIME_PER_Q = 120; // 2 minutes per question (seconds)
+
+    let idx = 0;
+    let score = 0;
+    let selected = null;
+    let locked = false;
+
+    let remaining = TOTAL_TIME_PER_Q;
+    let tick = null;
+
+    const letters = ["A","B","C","D","E","F"];
+
+    function fmtTime(s){
+      const mm = String(Math.floor(s/60)).padStart(2,'0');
+      const ss = String(s%60).padStart(2,'0');
+      return `${mm}:${ss}`;
+    }
+
+    function stopTimer(){
+      if(tick) clearInterval(tick);
+      tick = null;
+    }
+
+    function startTimer(){
+      stopTimer();
+      remaining = TOTAL_TIME_PER_Q;
+      timerText.textContent = fmtTime(remaining);
+
+      tick = setInterval(() => {
+        remaining -= 1;
+        timerText.textContent = fmtTime(Math.max(0, remaining));
+        if(remaining <= 0){
+          stopTimer();
+          lockAndReveal(null); // no answer
+        }
+      }, 1000);
+    }
+
+    function choiceTemplate(q, choiceIndex){
+      const letter = letters[choiceIndex] || "?";
+      const choiceText = q.choices[choiceIndex];
+      return `
+        <button class="choice" data-choice="${choiceIndex}" type="button" aria-disabled="false">
+          <span class="letter">${letter}</span>
+          <span class="ctext">${escapeHtml(choiceText)}</span>
+        </button>
+      `;
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function renderQuestion(){
+      const q = questions[idx];
+      selected = null;
+      locked = false;
+
+      const choicesHtml = q.choices.map((_, i) => choiceTemplate(q, i)).join("");
+
+      screen.innerHTML = `
+        <div class="question-head">
+          <div>
+            <div class="qtag">Question ${idx+1} / ${questions.length}</div>
+            <p class="qtitle">${escapeHtml(q.prompt)}</p>
+            <div class="hint">${escapeHtml(q.hint ?? "")}</div>
+          </div>
+        </div>
+
+        <div class="choices" role="list">
+          ${choicesHtml}
+        </div>
+
+        <div class="actions">
+          <div class="status">Pick one answer.</div>
+          <button class="btn-secondary" id="skipBtn" type="button">Skip</button>
+        </div>
+      `;
+
+      // hook up buttons
+      const choiceButtons = Array.from(screen.querySelectorAll('.choice'));
+      choiceButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if(locked) return;
+          const c = Number(btn.getAttribute('data-choice'));
+          selected = c;
+          lockAndReveal(c);
+        });
+      });
+
+      const skipBtn = screen.querySelector('#skipBtn');
+      skipBtn.addEventListener('click', () => {
+        if(locked) return;
+        lockAndReveal(null);
+      });
+
+      startTimer();
+    }
+
+    function lockAndReveal(choiceIndex){
+      if(locked) return;
+      locked = true;
+      stopTimer();
+
+      const q = questions[idx];
+      const correctIndex = q.answer;
+
+      // Disable all choices and mark correct/wrong
+      const choiceButtons = Array.from(screen.querySelectorAll('.choice'));
+      choiceButtons.forEach(btn => {
+        btn.setAttribute('aria-disabled', 'true');
+        const ci = Number(btn.getAttribute('data-choice'));
+
+        if(ci === correctIndex){
+          btn.classList.add('correct');
+        } else if(choiceIndex !== null && ci === choiceIndex){
+          btn.classList.add('wrong');
+        }
+      });
+
+      const isCorrect = (choiceIndex !== null && choiceIndex === correctIndex);
+      if(isCorrect) score += 1;
+
+      // show feedback + next button
+      const feedback = isCorrect ? "Correct ✅" : (choiceIndex === null ? "Time / skipped ⏭️" : "Wrong ❌");
+      const explanation = q.explanation ? `<div class="hint" style="margin-top:10px;">${escapeHtml(q.explanation)}</div>` : "";
+
+      screen.insertAdjacentHTML('beforeend', `
+        <div style="margin-top:16px;">
+          <div class="badge">
+            <span class="dot ${isCorrect ? '' : 'bad'}"></span>
+            <div style="font-weight:900;">${feedback}</div>
+          </div>
+          ${explanation}
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+            <button id="nextBtn" type="button">${idx+1 < questions.length ? 'Next question' : 'See results'}</button>
+          </div>
+        </div>
+      `);
+
+      const nextBtn = screen.querySelector('#nextBtn');
+      nextBtn.addEventListener('click', () => {
+        idx += 1;
+        if(idx >= questions.length){
+          renderEnd();
+        } else {
+          renderQuestion();
+        }
+      });
+    }
+
+    function renderEnd(){
+      stopTimer();
+      screen.innerHTML = `
+        <div class="end">
+          <div class="qtag" style="background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.10); color: var(--accent);">
+            Completed
+          </div>
+          <p class="score">${score} / ${questions.length}</p>
+          <p class="sub">
+            Thanks for playing. You can refresh to try again.
+          </p>
+          <div class="badge">
+            <span class="dot ${score >= Math.ceil(questions.length*0.7) ? '' : 'bad'}"></span>
+            <div style="font-weight:900;">
+              ${score >= Math.ceil(questions.length*0.7) ? 'Great job!' : 'Good effort—try again'}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Start
+    renderQuestion();
+
+  </script>
+</body>
+</html>
